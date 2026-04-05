@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+COMMAND="${1:-help}"
+
+case "$COMMAND" in
+  dev)
+    echo "Starting Tauri dev server..."
+    pnpm tauri dev
+    ;;
+
+  build)
+    echo "Building Tauri app for release..."
+    pnpm tauri build
+    ;;
+
+  check)
+    echo "Type-checking TypeScript..."
+    pnpm exec tsc --noEmit
+    echo "Checking Rust..."
+    cargo check --manifest-path src-tauri/Cargo.toml
+    ;;
+
+  lint)
+    echo "Linting Rust..."
+    cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+    ;;
+
+  update)
+    echo "Updating npm dependencies..."
+    pnpm update
+    echo "Updating Rust dependencies..."
+    cargo update --manifest-path src-tauri/Cargo.toml
+    ;;
+
+  install)
+    echo "Installing npm dependencies..."
+    pnpm install
+    ;;
+
+  clean)
+    echo "Cleaning build artifacts..."
+    rm -rf dist
+    cargo clean --manifest-path src-tauri/Cargo.toml
+    ;;
+
+  icons)
+    echo "Regenerating app icons from src-tauri/icons/icon.png..."
+    pnpm tauri icon src-tauri/icons/icon.png
+    ;;
+
+  help|*)
+    cat <<'EOF'
+Usage: ./run <command>
+
+Commands:
+  dev       Start the Tauri development server with hot-reload
+  build     Compile and bundle the app for release
+  check     Type-check TypeScript and run cargo check
+  lint      Run clippy lints on Rust code
+  update    Update all npm and Cargo dependencies
+  install   Install npm dependencies (pnpm install)
+  clean     Remove dist/ and Rust build artifacts
+  icons     Regenerate app icons from src-tauri/icons/icon.png
+  help      Show this help message
+EOF
+    ;;
+esac

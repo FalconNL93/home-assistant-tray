@@ -2,8 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use tauri::Url;
 
-use toml;
-
 #[derive(Deserialize)]
 pub struct ConfigBase {
     pub url: Option<String>
@@ -19,16 +17,21 @@ pub struct Config {
 
 impl Config {
   pub fn from_file(path: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    #[cfg(debug_assertions)]
     println!("===============Config Loading=================");
+    #[cfg(debug_assertions)]
     println!("Loading config from: {}", path);
     let content = Self::load_from_file(path)?;
+    #[cfg(debug_assertions)]
     println!("Config content: {:?}", content);
     let mut config: ConfigBase = toml::from_str(&content)?;
     if config.url.is_some() {
+      #[cfg(debug_assertions)]
       println!("Validating URL: {}", config.url.clone().unwrap());
       let url = Url::parse(&config.url.clone().unwrap());
 
       if url.is_err() {
+        #[cfg(debug_assertions)]
         println!("Invalid URL, resetting to None");
         config.url = None;
       }
@@ -37,7 +40,9 @@ impl Config {
       url: config.url,
       path: path.to_string(),
     };
+    #[cfg(debug_assertions)]
     println!("Final Config: {:?}", config);
+    #[cfg(debug_assertions)]
     println!("============================================");
     Ok(config)
   }
@@ -46,9 +51,11 @@ impl Config {
     match std::fs::read_to_string(path) {
       Ok(content) => Ok(content),
       Err(_) => {
-        let default_content = "";
+        if let Some(parent) = std::path::Path::new(path).parent() {
+          std::fs::create_dir_all(parent)?;
+        }
         std::fs::write(path, "")?;
-        Ok(default_content.to_string())
+        Ok(String::new())
       }
     }
   }
@@ -64,18 +71,23 @@ impl Config {
   }
 
   pub fn update_url(&mut self, new_url: &str) -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(debug_assertions)]
     println!("=============URL Config Update==============");
+    #[cfg(debug_assertions)]
     println!("Updating URL to: {}", new_url);
     let parsed_url = Url::parse(new_url);
     if parsed_url.is_err() {
+      #[cfg(debug_assertions)]
       println!("Invalid URL format: {}", new_url);
-      println!("============================================");
       return Err("Invalid URL format".into());
     }
     self.url = Some(new_url.to_string());
+    #[cfg(debug_assertions)]
     println!("Updated Config: {:?}", self);
     self.save_to_file()?;
+    #[cfg(debug_assertions)]
     println!("Config saved to file: {}", self.path);
+    #[cfg(debug_assertions)]
     println!("============================================");
     Ok(())
   }
