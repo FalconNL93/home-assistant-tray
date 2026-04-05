@@ -29,11 +29,13 @@ impl<R: Runtime> Tray<R> {
   fn build_menu(manager: &App<R>) -> Result<Menu<R>, Box<dyn std::error::Error>> {
     let quit = MenuItem::with_id(manager, "quit", "Quit", true, None::<&str>)?;
     let config = MenuItem::with_id(manager, "config", "Config", true, None::<&str>)?;
+    let prefs = MenuItem::with_id(manager, "prefs", "Preferences", true, None::<&str>)?;
     let show = MenuItem::with_id(manager, "show", "Show", true, None::<&str>)?;
 
     let menu = Menu::with_items(manager, &[
       &show,
       &config,
+      &prefs,
       &PredefinedMenuItem::separator(manager)?,
       &quit,
     ])?;
@@ -48,6 +50,12 @@ impl<R: Runtime> Tray<R> {
       }
       "config" => {
         app.get_webview_window("config").map(|w| w.show().ok());
+      }
+      "prefs" => {
+        app.get_webview_window("prefs").map(|w| {
+          w.show().ok();
+          w.set_focus().ok();
+        });
       }
       "show" => {
         app.get_webview_window("main").map(|w| {

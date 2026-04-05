@@ -10,6 +10,12 @@ export default defineConfig(async () => ({
   //
   // 1. prevent vite from obscuring rust errors
   clearScreen: false,
+  // Multi-page app: both index.html (config window) and prefs.html must be bundled
+  build: {
+    rollupOptions: {
+      input: ["index.html", "prefs.html"],
+    },
+  },
   // 2. tauri expects a fixed port, fail if that port is not available
   server: {
     port: 1420,

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Preferences</title>
+    <link rel="stylesheet" href="/src/prefs.css" />
+    <script type="module" src="/src/prefs.ts" defer></script>
+  </head>
+  <body>
+    <div class="titlebar" data-tauri-drag-region></div>
+    <main>
+      <h1>Preferences</h1>
+
+      <section>
+        <h2>General</h2>
+        <div class="row">
+          <label for="device-name">Device name</label>
+          <input id="device-name" type="text" placeholder="My Mac" autocomplete="off" />
+        </div>
+      </section>
+
+      <section>
+        <h2>Updates</h2>
+        <div class="row">
+          <label for="auto-update">Automatically check for updates</label>
+          <input id="auto-update" type="checkbox" />
+        </div>
+        <div class="row">
+          <span class="label">Check now</span>
+          <button id="check-update" type="button" class="secondary">Check for Updates</button>
+        </div>
+        <p id="update-status" class="status"></p>
+      </section>
+
+      <section>
+        <h2>Notifications</h2>
+        <div class="row">
+          <label for="notifs-enabled">Enable notifications</label>
+          <input id="notifs-enabled" type="checkbox" />
+        </div>
+      </section>
+
+      <footer>
+        <button id="cancel" type="button" class="secondary">Cancel</button>
+        <button id="save" type="button">Save</button>
+      </footer>
+    </main>
+  </body>
+</html>

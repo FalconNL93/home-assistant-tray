@@ -2,48 +2,41 @@ use serde::{Deserialize, Serialize};
 
 use tauri::Url;
 
-#[derive(Deserialize)]
-pub struct ConfigBase {
-    pub url: Option<String>
-}
-
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Config {
     pub url: Option<String>,
-    #[serde(skip_serializing)]
-    path: String
+    pub token: Option<String>,
+    pub device_name: Option<String>,
+    #[serde(default = "default_true")]
+    pub auto_update: bool,
+    #[serde(default = "default_true")]
+    pub notifications_enabled: bool,
+    #[serde(skip)]
+    path: String,
 }
+
+fn default_true() -> bool { true }
 
 
 impl Config {
   pub fn from_file(path: &str) -> Result<Self, Box<dyn std::error::Error>> {
     #[cfg(debug_assertions)]
-    println!("===============Config Loading=================");
-    #[cfg(debug_assertions)]
-    println!("Loading config from: {}", path);
-    let content = Self::load_from_file(path)?;
-    #[cfg(debug_assertions)]
-    println!("Config content: {:?}", content);
-    let mut config: ConfigBase = toml::from_str(&content)?;
-    if config.url.is_some() {
-      #[cfg(debug_assertions)]
-      println!("Validating URL: {}", config.url.clone().unwrap());
-      let url = Url::parse(&config.url.clone().unwrap());
+    println!("[Config] loading from: {}", path);
 
-      if url.is_err() {
+    let content = Self::load_from_file(path)?;
+    let mut config: Config = toml::from_str(&content)?;
+    config.path = path.to_string();
+
+    if let Some(ref url_str) = config.url.clone() {
+      if Url::parse(url_str).is_err() {
         #[cfg(debug_assertions)]
-        println!("Invalid URL, resetting to None");
+        println!("[Config] invalid URL in config, resetting to None");
         config.url = None;
       }
     }
-    let config = Config {
-      url: config.url,
-      path: path.to_string(),
-    };
+
     #[cfg(debug_assertions)]
-    println!("Final Config: {:?}", config);
-    #[cfg(debug_assertions)]
-    println!("============================================");
+    println!("[Config] loaded: {:?}", config);
     Ok(config)
   }
 
@@ -60,10 +53,6 @@ impl Config {
     }
   }
 
-  // fn reload_from_file(&self) -> Result<String, Box<dyn std::error::Error>> {
-  //   Self::load_from_file(&self.path)
-  // }
-
   fn save_to_file(&self) -> Result<(), Box<dyn std::error::Error>> {
     let toml_string = toml::to_string(self)?;
     std::fs::write(&self.path, toml_string)?;
@@ -71,24 +60,28 @@ impl Config {
   }
 
   pub fn update_url(&mut self, new_url: &str) -> Result<(), Box<dyn std::error::Error>> {
-    #[cfg(debug_assertions)]
-    println!("=============URL Config Update==============");
-    #[cfg(debug_assertions)]
-    println!("Updating URL to: {}", new_url);
-    let parsed_url = Url::parse(new_url);
-    if parsed_url.is_err() {
-      #[cfg(debug_assertions)]
-      println!("Invalid URL format: {}", new_url);
+    if Url::parse(new_url).is_err() {
       return Err("Invalid URL format".into());
     }
     self.url = Some(new_url.to_string());
-    #[cfg(debug_assertions)]
-    println!("Updated Config: {:?}", self);
+    self.save_to_file()
+  }
+
+  pub fn update_token(&mut self, new_token: &str) -> Result<(), Box<dyn std::error::Error>> {
+    self.token = Some(new_token.to_string());
     self.save_to_file()?;
-    #[cfg(debug_assertions)]
-    println!("Config saved to file: {}", self.path);
-    #[cfg(debug_assertions)]
-    println!("============================================");
     Ok(())
+  }
+
+  pub fn update_prefs(
+    &mut self,
+    device_name: Option<String>,
+    auto_update: bool,
+    notifications_enabled: bool,
+  ) -> Result<(), Box<dyn std::error::Error>> {
+    self.device_name = device_name;
+    self.auto_update = auto_update;
+    self.notifications_enabled = notifications_enabled;
+    self.save_to_file()
   }
 }

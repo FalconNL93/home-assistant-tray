@@ -11,9 +11,12 @@
   <body>
     <h1>Home Assistant Tray App</h1>
     <form id="save-form" autocomplete="off">
-      <label for="url-input">Enter your Home Assistant URL:</label>
+      <label for="url-input">Home Assistant URL</label>
       <input id="url-input" type="url" placeholder="https://ha.example.com" autocomplete="off" required />
-      <button type="submit">Save URL</button>
+      <label for="token-input">Long-Lived Access Token</label>
+      <input id="token-input" type="password" placeholder="Paste your token here" autocomplete="off" />
+      <p class="hint">Generate a token in HA → Profile → Security → Long-Lived Access Tokens</p>
+      <button type="submit">Save</button>
     </form>
   </body>
 </html>

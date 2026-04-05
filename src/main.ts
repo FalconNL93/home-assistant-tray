@@ -1,28 +1,33 @@
 import { invoke } from "@tauri-apps/api/core";
 
-let input: HTMLInputElement | null;
+let urlInput: HTMLInputElement | null;
+let tokenInput: HTMLInputElement | null;
 
-async function updateUrl() {
-  if (input) {
-    console.log("Input value:", input.value)
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    await invoke("save_url", {
-      url: input.value,
-    })
+async function saveSettings() {
+  if (urlInput) {
+    await invoke("save_url", { url: urlInput.value });
+  }
+  if (tokenInput && tokenInput.value.trim()) {
+    await invoke("save_token", { token: tokenInput.value.trim() });
   }
 }
 
 window.addEventListener("DOMContentLoaded", async () => {
-  input = document.querySelector("#url-input")
+  urlInput = document.querySelector("#url-input");
+  tokenInput = document.querySelector("#token-input");
 
-  const currentUrl: string | null = await invoke("get_url")
+  const currentUrl: string | null = await invoke("get_url");
+  if (urlInput && currentUrl) {
+    urlInput.value = currentUrl;
+  }
 
-  if (input && currentUrl) {
-    input.value = currentUrl
+  const currentToken: string | null = await invoke("get_token");
+  if (tokenInput && currentToken) {
+    tokenInput.value = currentToken;
   }
 
   document.querySelector("#save-form")?.addEventListener("submit", e => {
-    e.preventDefault()
-    updateUrl()
+    e.preventDefault();
+    saveSettings();
   });
 });
